@@ -45,9 +45,6 @@ func AddUser(ctx echo.Context) error {
 	}
 
 	fmt.Println(user)
-	fmt.Println(user.Username)
-	fmt.Println(user.Name)
-	fmt.Println(user.Surname)
 
 	return ctx.String(200, "success")
 }
