@@ -19,7 +19,14 @@ func main() {
 	ech.POST("/user", controller.AddUser)
 
 	adm := ech.Group("/admin")
-	adm.GET("/main", controller.MainAdmin)
+	adm.Use(middleware.BasicAuth(func(username, password string, ctx echo.Context) (bool, error) {
+		if username == "admin" && password == "123" {
+			return true, nil
+		}
+		return false, nil
+	}))
 
+	adm.GET("/main", controller.MainAdmin)
+	
 	ech.Start(":8080")
 }
