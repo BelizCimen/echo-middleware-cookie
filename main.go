@@ -11,6 +11,7 @@ func main() {
 	fmt.Println("hello world")
 
 	ech := echo.New()
+	ech.Use(controller.SetHeader)
 	ech.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: "statusCode=${status}\n"}))
 
@@ -27,6 +28,6 @@ func main() {
 	}))
 
 	adm.GET("/main", controller.MainAdmin)
-	
+
 	ech.Start(":8080")
 }
