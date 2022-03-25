@@ -5,12 +5,32 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"net/http"
+	"strings"
 )
 
 func MyMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		fmt.Println(ctx.Request().Header.Get("Accept"))
 		return next(ctx)
+	}
+}
+
+func checkCookie(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		cookie, err := ctx.Cookie("userId")
+		if err != nil {
+			fmt.Println(err)
+			if strings.Contains(err.Error(), "named cookie not present") {
+				return ctx.String(http.StatusUnauthorized, "No cookies were sent")
+
+			}
+		}
+		if cookie.Value == "user_id" {
+			return next(ctx)
+		}
+
+		return ctx.String(http.StatusUnauthorized, "Wrong cookie")
 	}
 }
 
@@ -27,14 +47,9 @@ func main() {
 	ech.POST("/user", controller.AddUser)
 
 	adm := ech.Group("/admin")
-	adm.Use(middleware.BasicAuth(func(username, password string, ctx echo.Context) (bool, error) {
-		if username == "admin" && password == "123" {
-			return true, nil
-		}
-		return false, nil
-	}))
 
-	adm.GET("/main", controller.MainAdmin)
+	adm.GET("/main", controller.MainAdmin, checkCookie)
+	adm.GET("/login", controller.LoginAdmin)
 
 	ech.Start(":8080")
 }
